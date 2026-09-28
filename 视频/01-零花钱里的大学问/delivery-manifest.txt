@@ -1,0 +1,12 @@
+Title: 第1章 零花钱里的大学问
+Final video: video/01-零花钱里的大学问.mp4
+Container: MP4
+Video: H.264, 1920x1080, 30fps
+Audio: AAC, 22050Hz, mono
+Duration: 323.622132 seconds
+File size: 26919500 bytes
+SHA256: 1A63D213AF0B9EF82B98D54E10DFF1A4A3DB90A0BF8414C0A5C172E2370B8667
+IndexTTS voice: audio/reference/琴.mp3
+Editable audio segments: 9 WAV + 9 MP3
+Editable video segments: 9 MP4
+Build verification: passed

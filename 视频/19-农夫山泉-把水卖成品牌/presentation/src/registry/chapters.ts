@@ -1,0 +1,1 @@
+import{WaterSystem}from"../chapters/19-water-system/WaterSystem";import{narrations}from"../chapters/19-water-system/narrations";import type{ChapterDef}from"./types";export const CHAPTERS:ChapterDef[]=[{id:"19-water-system",title:"农夫山泉：把水卖成品牌",narrations,Component:WaterSystem}];

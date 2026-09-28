@@ -1,0 +1,1 @@
+import{AbilityCircle}from"../chapters/07-ability-circle/AbilityCircle";import{narrations}from"../chapters/07-ability-circle/narrations";import type{ChapterDef}from"./types";export const CHAPTERS:ChapterDef[]=[{id:"07-ability-circle",title:"能力圈：只打你能赢的球",narrations,Component:AbilityCircle}];

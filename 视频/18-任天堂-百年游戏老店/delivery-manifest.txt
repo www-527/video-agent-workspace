@@ -1,0 +1,36 @@
+第 18 章交付清单｜任天堂：百年游戏老店
+
+[内容]
+article.md
+script.md
+outline.md
+storyboard.md
+
+[GPT Image 2]
+assets/prompts/ch18-hanafuda-arcade.md
+assets/images/ch18-hanafuda-arcade.png
+
+[可编辑网页视频]
+presentation/package.json
+presentation/src/
+presentation/public/assets/
+presentation/scripts/qa-capture.cjs
+presentation/scripts/qa-auto-flow.cjs
+presentation/scripts/record-video.cjs
+presentation/video.config.json
+
+[最终视频]
+video/第18章-任天堂-百年游戏老店-无配音.mp4
+
+[质检]
+qa-report.md
+qa/content-self-check.md
+qa/web-contact-sheet.png
+qa/video-contact-sheet.png
+qa/timeline-classification.json
+qa/motion-check.json
+qa/video-frames-final/
+presentation/qa/layout-diagnostics.json
+presentation/qa/auto-flow.json
+presentation/qa/recording-metadata.json
+presentation/qa/recording-final-frame.png

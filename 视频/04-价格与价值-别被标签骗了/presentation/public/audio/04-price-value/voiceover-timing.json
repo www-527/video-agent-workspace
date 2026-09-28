@@ -1,0 +1,21 @@
+{
+  "chapter": 4,
+  "voiceProvider": "IndexTTS",
+  "voiceReference": "女-纯澈女生.mp3",
+  "gapSeconds": 0.25,
+  "alignment": "Scene starts were detected from the final silent MP4. Audio starts were delayed only when necessary to prevent adjacent narration segments from overlapping.",
+  "fullTrack": "04-价格与价值-别被标签骗了-女-纯澈女生-完整声轨.m4a",
+  "outputVideo": "../../../../video/04-价格与价值-别被标签骗了（女-纯澈女生配音）.mp4",
+  "segments": [
+    {"segment": 1, "file": "1.mp3", "sceneStart": 0.000, "audioStart": 0.000, "audioEnd": 22.854},
+    {"segment": 2, "file": "2.mp3", "sceneStart": 20.233, "audioStart": 23.104, "audioEnd": 31.347},
+    {"segment": 3, "file": "3.mp3", "sceneStart": 30.233, "audioStart": 31.597, "audioEnd": 63.044},
+    {"segment": 4, "file": "4.mp3", "sceneStart": 65.333, "audioStart": 65.333, "audioEnd": 94.343},
+    {"segment": 5, "file": "5.mp3", "sceneStart": 105.333, "audioStart": 105.333, "audioEnd": 134.680},
+    {"segment": 6, "file": "6.mp3", "sceneStart": 148.333, "audioStart": 148.333, "audioEnd": 183.972},
+    {"segment": 7, "file": "7.mp3", "sceneStart": 193.300, "audioStart": 193.300, "audioEnd": 221.831},
+    {"segment": 8, "file": "8.mp3", "sceneStart": 233.533, "audioStart": 233.533, "audioEnd": 261.870},
+    {"segment": 9, "file": "9.mp3", "sceneStart": 273.633, "audioStart": 273.633, "audioEnd": 319.193},
+    {"segment": 10, "file": "10.mp3", "sceneStart": 333.500, "audioStart": 333.500, "audioEnd": 344.576}
+  ]
+}

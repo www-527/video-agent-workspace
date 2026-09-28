@@ -1,0 +1,42 @@
+version: 1
+
+ownership:
+  storyboard_contracts:
+    owner_module: domain
+    allowed_writers:
+      - domain
+    allowed_readers:
+      - frontend
+      - application
+      - infrastructure
+      - persistence
+
+  video_creation_workflows:
+    owner_module: application
+    allowed_writers:
+      - application
+    allowed_readers:
+      - frontend
+      - infrastructure
+
+  external_provider_credentials:
+    owner_module: infrastructure
+    allowed_writers:
+      - infrastructure
+    allowed_readers:
+      - infrastructure
+
+  persisted_project_data:
+    owner_module: persistence
+    allowed_writers:
+      - persistence
+    allowed_readers:
+      - application
+      - infrastructure
+
+  client_state:
+    owner_module: frontend
+    allowed_writers:
+      - frontend
+    allowed_readers:
+      - frontend

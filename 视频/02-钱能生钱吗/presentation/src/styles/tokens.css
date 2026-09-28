@@ -1,0 +1,50 @@
+:root {
+  --shell: #050914;
+  --surface: #0b1424;
+  --surface-2: #111f34;
+  --surface-3: #1a2c43;
+  --text: #fff5db;
+  --text-2: #e9dec5;
+  --text-mute: #a8b1bc;
+  --text-faint: #617087;
+  --rule: rgba(255, 245, 219, 0.16);
+  --accent: #f4bd4c;
+  --accent-soft: rgba(244, 189, 76, 0.16);
+  --accent-glow: rgba(244, 189, 76, 0.52);
+  --mint: #79c9a7;
+  --mint-soft: rgba(121, 201, 167, 0.2);
+  --sleep: #8fa9dc;
+  --sleep-soft: rgba(143, 169, 220, 0.18);
+  --danger: #e88769;
+  --danger-soft: rgba(232, 135, 105, 0.18);
+  --paper: #f2dfba;
+  --paper-deep: #b88649;
+  --ink: #111827;
+  --glass: rgba(207, 232, 238, 0.26);
+  --juice: #efb84c;
+  --juice-light: #f8da82;
+  --night-blue: #142b50;
+  --font-display-cn: "Noto Serif SC", "Source Han Serif SC", serif;
+  --font-display-en: "Fraunces", "Playfair Display", Georgia, serif;
+  --font-body: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+  --font-mono: "JetBrains Mono", "IBM Plex Mono", monospace;
+  --font-features: "tnum", "ss01";
+  --r-card: 18px;
+  --r-stage: 0;
+  --rule-w: 1px;
+  --rule-style: solid;
+  --hero-num-font: var(--font-display-en);
+  --hero-num-style: normal;
+  --hero-num-weight: 700;
+  --hero-num-track: -0.04em;
+  --stage-pad-x: 112px;
+  --stage-pad-y: 88px;
+  --shadow-stage: 0 50px 150px rgba(0, 0, 0, 0.62);
+  --surface-pattern:
+    radial-gradient(circle at 12% 18%, rgba(244, 189, 76, 0.1) 0 2px, transparent 3px),
+    radial-gradient(circle at 84% 24%, rgba(121, 201, 167, 0.1) 0 2px, transparent 3px),
+    linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px);
+  --surface-pattern-size: 310px 250px, 360px 290px, 80px 80px, 80px 80px;
+  --surface-vignette: radial-gradient(circle at 50% 48%, transparent 36%, rgba(0, 0, 0, 0.42) 100%);
+}

@@ -1,0 +1,30 @@
+{
+  "chapter": 5,
+  "title": "市场先生：那个每天报价的人",
+  "theme": "市场先生情绪气象台",
+  "voiceover": false,
+  "video": {
+    "path": "video/05-市场先生-那个每天报价的人（无配音）.mp4",
+    "codec": "h264",
+    "profile": "High",
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "pixelFormat": "yuv420p",
+    "durationSeconds": 367.1,
+    "frameCount": 11013,
+    "audioStreamCount": 0,
+    "sizeBytes": 25623374,
+    "sha256": "884CE7EA021BD764C9A6D14FF4CA0802F11AF6564ED551F23369F86595E46DBA"
+  },
+  "project": "presentation",
+  "sourceArticle": "article.md",
+  "script": "script.md",
+  "narrationText": "旁白.txt",
+  "outline": "outline.md",
+  "qaReport": "qa-report.md",
+  "qaContactSheet": "qa/final-contact-sheet.png",
+  "generatedKeyArt": "assets/generated/mr-market-weather-house-keyart.png",
+  "imagePrompt": "assets/prompts/mr-market-weather-house-keyart.md",
+  "checks": {"build":"pass","browserConsoleErrors":0,"safeAreaOverflowCount":0,"fullDecode":"pass","fixedEnding":"pass","realMotion":"pass"}
+}

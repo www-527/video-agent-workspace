@@ -1,0 +1,436 @@
+Codex 配图全流程优化任务计划
+
+目标
+
+将 HTML 模式的“智能配图”从“全片图片准备完成后才开始生成”的阻塞流程，改为“全片统一规划、逐镜并行执行、超时自动降级”的流水线；保持现有 Pexels 来源记录、素材去重和 HTML 实际引用后才持久化的安全规则。
+
+非目标
+
+- 不改动图片轮播模式（z-image-turbo）的生成链路。
+- 不新增新的图库供应商。
+- 第一阶段不引入视觉模型验图；仅预留数据结构和接口位置。
+- 不改变已完成镜头的内容，除非用户显式选择重生成或换图。
+
+现状与问题
+
+现有 HTML 路由在开始逐镜 TTS / HTML 前，调用 prepareSmartImages() 完成全片真实素材的规划、搜索与下载。Pexels 慢、限流或某一镜失败，会拉长用户看到第一批成片镜头前的等待时间。
+
+目标流程
+
+1. 首镜定调确认后，调用一次轻量的 planRealImages()，获取全片 ImagePlan。
+2. 每个镜头独立执行 TTS 与素材准备；两者并行。
+3. 某镜素材通过验收并在预算内完成，则立即生成带图 HTML。
+4. 某镜素材失败、限流或超时，则立即生成原生 HTML。
+5. 生成 HTML 后，只有图片路径确实被引用，才保存 realImage / realImages。
+6. 所有镜头完成后，汇总智能配图结果、失败原因与素材来源。
+
+--------------------------------------------------
+阶段 0：基线确认与测试保护
+--------------------------------------------------
+
+任务 0.1：检查当前工作区与测试基线
+
+- 在 ai-video-agent 目录执行 git status --short。
+- 不覆盖、不格式化用户已有改动。
+- 执行 npm test 与 npx tsc --noEmit，记录现有失败；只将由本任务引入的失败视为回归。
+
+验收：
+
+- 明确现有工作树状态。
+- 后续改动不会混入无关文件。
+
+任务 0.2：阅读关键模块并建立改动边界
+
+必须阅读：
+
+- src/app/api/frames/html/route.ts
+- src/lib/pexels/smart-images.ts
+- src/lib/ai/real-image-planner.ts
+- src/lib/pexels/client.ts
+- src/lib/pexels/scoring.ts
+- src/lib/pexels/download.ts
+- src/lib/ai/html.ts
+- src/types/index.ts
+- src/hooks/use-frame-generation.ts
+- src/components/studio/preview-toolbar.tsx
+- 现有 pexels、HTML route、generation progress 相关测试。
+
+验收：
+
+- 确认当前 Pexels API 限制、状态保存格式、SSE 事件格式及 HTML 真实图校验入口。
+
+--------------------------------------------------
+阶段 1：类型、策略与全片计划
+--------------------------------------------------
+
+任务 1.1：扩展类型定义
+
+文件：src/types/index.ts
+
+新增或扩展以下类型，命名可以根据现有风格微调，但语义必须保留：
+
+type VisualRole =
+  | 'context'
+  | 'human-proof'
+  | 'physical-proof'
+  | 'explain'
+  | 'emphasis'
+  | 'transition';
+
+type RealImagePriority = 'required' | 'preferred' | 'optional' | 'never';
+type SmartImageMode = 'fast' | 'balanced' | 'asset-priority';
+type SmartImageFrameStatus =
+  | 'not-planned'
+  | 'planned'
+  | 'searching'
+  | 'candidate-ready'
+  | 'downloading'
+  | 'accepted'
+  | 'rendering-with-image'
+  | 'rendering-native'
+  | 'completed'
+  | 'timed-out'
+  | 'rejected'
+  | 'unavailable';
+
+扩展 SceneSpec：
+
+- visualRole?: VisualRole
+- realImagePriority?: RealImagePriority
+- imagePurpose?: string
+
+新增 SmartImagePlan（或同义类型）：
+
+- frameId
+- useRealImage
+- priority（0–100）
+- reason
+- purpose
+- query
+- fallbackQueries
+- subject
+- composition
+- textPosition
+- imageMotion（如 slow-push-in / slow-pan / static）
+- visualGroup
+- deadlineMs
+- people（沿用现有 PersonImagePlan 的能力）
+
+RealImageAsset 可按需要增加：
+
+- purpose?: string
+- imageMotion?: string
+- visualGroup?: string
+- acceptedAt?: string
+
+兼容性：所有新增字段必须可选，旧项目 outline、videoSource 可无迁移读取。
+
+测试：新增 types / 旧数据反序列化测试，确保无新增字段的对象能正常生成。
+
+任务 1.2：在导演阶段产出视觉职责
+
+文件：src/lib/ai/director.ts，以及可能涉及的 src/lib/ai/frame-ops.ts。
+
+- 更新导演系统提示词和 JSON schema，让模型输出 visualRole、realImagePriority、imagePurpose。
+- 维持现有 assetStrategy 决策；新字段只补充“为什么、是否值得使用真实图”。
+- 为模型输出缺失、非法或旧项目数据提供 deterministic fallback。
+
+建议 fallback：
+
+- chart / typography / css-svg → explain 或 emphasis，priority=never。
+- icon → transition 或 explain，priority=never。
+- real-image → context / human-proof / physical-proof，priority=preferred。
+- 其他含人物、场所、设备、自然实物的镜头 → optional。
+
+测试：
+
+- 导演输出包含新增字段时可正确 normalize。
+- 非法枚举回退到合理值。
+- chart / typography / css-svg 永不获得 required / preferred 的真实图优先级。
+
+任务 1.3：重构全片图片规划器为只规划、不下载
+
+文件：src/lib/ai/real-image-planner.ts
+
+- 将现有 RealImagePlan 扩展为 SmartImagePlan。
+- 规划器依旧只调用一次 AI，并继续执行：数量上限、最多连续两镜、受保护实体禁用、原生视觉禁用、已有素材跳过。
+- 调整默认比例：balanced 模式为 20–35%；fast 更低；asset-priority 更高但仍不超过安全上限。
+- 新增 visualGroup 与 imageMotion，并在 fallback 中生成稳定默认值。
+- 将计划约束纯函数导出，便于单元测试。
+
+必须保留的安全规则：
+
+- 不给具名人物、品牌、具体产品/作品、新闻事件找 Pexels 图。
+- 不给图表、数据、流程、时间线、标题、结论、抽象概念找 Pexels 图。
+- 已有真实素材的镜头不重新规划或下载。
+
+测试：
+
+- 4、8、12 镜项目的选中数量符合不同模式的上限。
+- 不超过两镜连续使用真实图。
+- protected entity 和 native visual 均被排除。
+- 旧计划结果能够自动补齐默认新增字段。
+
+--------------------------------------------------
+阶段 2：逐镜素材准备器
+--------------------------------------------------
+
+任务 2.1：将 smart-images.ts 拆分为计划与逐镜执行
+
+文件：src/lib/pexels/smart-images.ts
+
+保留或替换 prepareSmartImages()，但新增明确的逐镜 API：
+
+prepareSmartImageForFrame({
+  projectId,
+  frame,
+  plan,
+  existingSource,
+  abortSignal,
+  deadlineMs,
+  onProgress,
+}): Promise<SmartImageFrameResult>
+
+SmartImageFrameResult 至少包含：
+
+- frameId
+- status
+- assets
+- attemptedQueries
+- candidateCount
+- reason
+- elapsedMs
+
+行为要求：
+
+- 如果 plan.useRealImage=false，立即返回 not-planned，不发网络请求。
+- 如果已有 realImage / realImages，返回 accepted，复用现有素材，不重复下载。
+- 支持主检索词和备用检索词。
+- 每个请求按人物或普通场景选择 portrait / landscape。
+- 候选先评分，最多保留 3 个，按排名尝试下载；下载失败才试下一名。
+- 任何异常都转化为镜头级结果，除非 abortSignal 已取消。
+- 429：标记当前镜头 unavailable；调用方可决定是否停止剩余 Pexels 队列。
+
+不要在此函数写 Prisma 或项目 videoSource；它只返回结果。
+
+任务 2.2：增加素材下载预算与并发友好取消
+
+文件：src/lib/pexels/download.ts、src/lib/pexels/smart-images.ts
+
+- 使用 AbortSignal.timeout(deadlineMs) 与上层 abortSignal 合并。
+- 搜索、下载、候选切换都必须受同一个镜头级 deadline 控制。
+- 区分 timed-out、unavailable、rejected、failed，避免全部显示为“搜索失败”。
+- 保持文件大小、MIME、路径片段安全检查。
+
+测试：
+
+- useRealImage=false 不调用 searchPexels。
+- 既有素材不调用 searchPexels / downloadPexelsPhoto。
+- 首候选失败时会尝试第二候选。
+- timeout 返回 timed-out 并不抛出未处理异常。
+- abort 仍正确向上传递取消语义。
+
+任务 2.3：候选缓存（第一版可采用内存缓存）
+
+文件：新增 src/lib/pexels/cache.ts，或按现有目录组织。
+
+- key 至少包含规范化 query + orientation。
+- 缓存 Pexels 搜索返回的候选元数据，不缓存失败。
+- TTL 建议 10 分钟，并设置最大条目数，避免常驻服务内存增长。
+- 同一生成任务内的去重规则优先于缓存；缓存命中仍需通过当前项目的重复评分。
+
+测试：
+
+- 同 query + orientation 在 TTL 内只请求一次 Pexels。
+- 不同 orientation 不共用缓存。
+- 缓存候选仍会被 usedPhotoIds 排除。
+
+--------------------------------------------------
+阶段 3：HTML 主流程改为镜头级流水线
+--------------------------------------------------
+
+任务 3.1：扩展 HTML 路由请求与策略解析
+
+文件：src/app/api/frames/html/route.ts、src/hooks/use-frame-generation.ts。
+
+- 将 smartImages:boolean 扩展为可选 smartImageMode:'fast'|'balanced'|'asset-priority'；兼容旧 smartImages=true，映射为 balanced。
+- sampleOnly 时必须始终关闭智能配图。
+- 未配置 PEXELS_API_KEY 时保留已有降级提示并走原生动画。
+- 只对需要重新生成视觉或缺失视觉的镜头创建素材任务；完整且无需强制重生成的镜头不得搜索。
+
+任务 3.2：全片计划后进入镜头级流水线
+
+文件：src/app/api/frames/html/route.ts
+
+具体实现：
+
+1. 生成开始时调用 planRealImages() 一次，得到按 frameId 索引的计划。
+2. 删除“等待 prepareSmartImages() 全部完成后才 processFrame”的阻塞路径。
+3. 在 processFrame 中同时启动：
+   - TTS Promise（当需要音频时）；
+   - prepareSmartImageForFrame Promise（当该镜头有计划且需要视觉时）。
+4. TTS 与素材准备并发运行；HTML 生成等待两者的最终结果。
+5. 素材 accepted 时，将 assets、purpose、motion 传给 generateFrameHtmlWithRetry。
+6. 非 accepted 时不传图片，生成原生 HTML，并保留本镜降级原因。
+7. HTML 生成后用现有“localPath 被实际引用”规则判断是否持久化素材。
+8. 维持 HTML FRAME_CONCURRENCY=2；为素材准备加独立 semaphore，默认 2；TTS 不与 Pexels semaphore 争用。
+9. 所有 Prisma 写入继续经现有 saveQueue 串行化。
+
+注意：不要在一个 processFrame 内 await TTS 后才启动素材准备，也不要 await 素材准备后才启动 TTS；两者应在创建后立即并行。
+
+任务 3.3：Pexels 限流与全局熔断
+
+文件：src/app/api/frames/html/route.ts，可能新增 src/lib/pexels/queue.ts。
+
+- 若 Pexels 返回 429，停止尚未开始的图片准备任务，统一以 unavailable 降级。
+- 已经在下载中的任务允许自然完成或按实现安全取消，但不得中断 HTML/TTS。
+- 不将 429 视为整个视频生成失败。
+
+任务 3.4：更新 SSE 事件与进度权重
+
+文件：src/lib/generation-progress.ts、src/app/api/frames/html/route.ts、src/hooks/use-frame-generation.ts。
+
+新增或细化每镜事件：
+
+- image_search（搜索）
+- image_download（下载）
+- image_accepted（素材通过）
+- image_fallback（已降级原生动画）
+- html（带图或原生 HTML 生成）
+
+要求：
+
+- 事件必须带 frameId、当前状态、可读 message。
+- 全局进度单调递增；素材失败后仍能推进到 HTML / 保存阶段。
+- done 事件汇总 planned、downloaded、accepted/applied、fallback、failed 等统计。
+
+测试：
+
+- 素材准备和 TTS 均在 HTML 前开始（使用 deferred Promise / mock 验证）。
+- #1 图片慢时，#2 可以先完成 TTS 或 HTML，不被全片图片阶段阻塞。
+- 一镜图片超时仍会完成原生 HTML 与 TTS。
+- 429 不影响其他不需真实图的镜头。
+- 只有 HTML 真实引用了 localPath 才保存 realImages。
+- abort 生成时，不再发非 aborted 的终态事件。
+
+--------------------------------------------------
+阶段 4：HTML 视觉语法与来源数据
+--------------------------------------------------
+
+任务 4.1：扩展 HTML 生成输入与提示词
+
+文件：src/lib/ai/html.ts
+
+- 将 purpose、imageMotion、visualGroup 等已验收素材属性传入生成上下文。
+- 更新提示词：图片不是装饰背景，必须承担既定叙事作用。
+- 对 layout 明确约束：
+  - full-bleed：简单宽场景；文案放在安全空白侧；缓慢推拉。
+  - editorial-split：信息区与图片区分栏。
+  - framed-focus：人物、设备或局部实体，配标签、数据或注释。
+- 保留现有要求：每张传入图片必须以 <img> 引用；多名人物必须等权呈现；不得用 CSS 伪造真实人物、地点或产品。
+
+测试：
+
+- 真实图片路径均出现在输出 HTML 时通过 validateRealImageUsage。
+- 输入多张具名人物图片时，不会只输出其中一张。
+- 无素材时提示词不会遗漏原生动画指引。
+
+任务 4.2：扩展素材来源面板
+
+文件：src/components/studio/material-sources-dialog.tsx，以及所需的类型/UI 文件。
+
+- 展示镜头编号、图片来源、摄影师、Pexels 链接。
+- 可选展示素材用途、构图、实际渲染模式。
+- 不因旧素材缺少新增字段而报错。
+
+第一期不要求实现“换图 / 强制配图 / 改为动画”按钮；若实现，必须拆为独立任务，避免扩大发布风险。
+
+--------------------------------------------------
+阶段 5：策略 UI（可与核心流水线分开提交）
+--------------------------------------------------
+
+任务 5.1：智能配图模式选择器
+
+文件：src/components/studio/preview-toolbar.tsx、src/hooks/use-frame-generation.ts。
+
+- 将单一 Switch 升级为“关闭 / 快速 / 平衡 / 素材优先”选择控件。
+- 默认值：平衡；兼容已保存或旧前端只传 boolean 的情况。
+- 保持控制区紧凑，避免干扰“首镜定调”和“一键生成其余镜头”。
+- 说明文案：快速优先出片；平衡为默认；素材优先允许更长等待。
+
+验收：
+
+- 选择结果正确传到 /api/frames/html。
+- 样片阶段不可开启智能配图。
+- 无 Pexels 配置时 UI 或流程能清楚提示并安全降级。
+
+--------------------------------------------------
+阶段 6：回归测试、性能验证与交付
+--------------------------------------------------
+
+任务 6.1：补齐单元与集成测试
+
+优先新增 / 更新：
+
+- tests/pexels.test.ts
+- tests/director.test.ts
+- tests/frame-ops.test.ts
+- tests/visual-prompt.test.ts
+- HTML route 或 generation flow 的测试文件；若不存在，新增 tests/html-smart-image-pipeline.test.ts。
+- material sources UI 测试。
+
+关键覆盖：
+
+1. 计划比例、连续镜头和禁配规则。
+2. 逐镜素材执行、候选回退、超时、取消、429。
+3. TTS 与配图并行、镜头之间无全局阻塞。
+4. 素材未被 HTML 引用时不写入项目状态。
+5. 旧 outline 与旧 videoSource 仍可用。
+6. Pexels 未配置、Pexels 异常、单镜失败时整条视频仍可完成。
+
+任务 6.2：执行验证
+
+在 ai-video-agent 目录执行：
+
+- npm test
+- npx tsc --noEmit
+- npm run build（若项目构建脚本可用）
+
+人工回归场景：
+
+1. 6 镜 HTML 项目，平衡模式：应有约 1–2 张真实素材，首批镜头无需等所有素材下载完成。
+2. Pexels API key 缺失：全部自动使用原生动画且生成完成。
+3. 模拟一镜下载超时：该镜降级，其余镜正常完成。
+4. 模拟 429：尚未开始的配图镜头全部降级；不需图的镜头不受影响。
+5. 重新生成已有真实图的单镜：默认复用图片，不重复下载。
+6. 强制视觉重生成：只针对目标镜头重新走对应配图逻辑。
+
+任务 6.3：性能验收指标
+
+- 6 镜项目的“首个完成镜头时间”应明显小于旧流程的“全片素材准备完成时间”。
+- Pexels 限流或慢网络不得阻止 TTS / 原生 HTML 镜头推进。
+- 同一 query + orientation 在单进程 TTL 内不得重复搜索。
+- 无未引用图片被写入项目 videoSource。
+
+--------------------------------------------------
+提交建议
+--------------------------------------------------
+
+建议拆为以下逻辑提交，便于审查与回滚：
+
+1. feat(types): add visual roles and smart image planning metadata
+2. feat(pexels): split planning from per-frame asset preparation
+3. feat(html): pipeline smart images with tts and html generation
+4. feat(progress): report per-frame smart image status and fallbacks
+5. feat(ui): add smart image strategy selector and richer source metadata
+6. test: cover smart image pipeline concurrency and fallbacks
+
+每个提交后至少运行相关测试；最终必须运行 npm test 与 npx tsc --noEmit。
+
+完成定义
+
+- 智能配图不再是全片视频生成的硬前置阻塞步骤。
+- 每镜可独立成功、超时降级或复用已验收图片。
+- 真实图比例、安全限制、去重与素材来源记录仍然生效。
+- 用户能在进度中看见每镜配图状态与自动降级原因。
+- 完整测试和类型检查通过，且不破坏图片轮播模式。

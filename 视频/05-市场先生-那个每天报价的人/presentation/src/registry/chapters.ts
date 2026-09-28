@@ -1,0 +1,1 @@
+import{MrMarket}from"../chapters/05-mr-market/MrMarket";import{narrations}from"../chapters/05-mr-market/narrations";import type{ChapterDef}from"./types";export const CHAPTERS:ChapterDef[]=[{id:"05-mr-market",title:"市场先生：那个每天报价的人",narrations,Component:MrMarket}];

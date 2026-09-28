@@ -1,0 +1,21 @@
+{
+  "chapter": 5,
+  "voiceProvider": "IndexTTS",
+  "voiceReference": "女-纯澈女生.mp3",
+  "gapSeconds": 0.25,
+  "alignment": "Scene starts were detected from the final silent MP4. Audio starts were delayed only when necessary to prevent adjacent narration segments from overlapping.",
+  "fullTrack": "05-市场先生-那个每天报价的人-女-纯澈女生-完整声轨.m4a",
+  "outputVideo": "../../../../video/05-市场先生-那个每天报价的人（女-纯澈女生配音）.mp4",
+  "segments": [
+    {"segment": 1, "file": "1.mp3", "sceneStart": 0.000, "audioStart": 0.000, "audioEnd": 25.770},
+    {"segment": 2, "file": "2.mp3", "sceneStart": 21.467, "audioStart": 26.020, "audioEnd": 33.660},
+    {"segment": 3, "file": "3.mp3", "sceneStart": 31.500, "audioStart": 33.910, "audioEnd": 63.036},
+    {"segment": 4, "file": "4.mp3", "sceneStart": 69.600, "audioStart": 69.600, "audioEnd": 97.643},
+    {"segment": 5, "file": "5.mp3", "sceneStart": 109.600, "audioStart": 109.600, "audioEnd": 137.156},
+    {"segment": 6, "file": "6.mp3", "sceneStart": 151.700, "audioStart": 151.700, "audioEnd": 179.967},
+    {"segment": 7, "file": "7.mp3", "sceneStart": 193.733, "audioStart": 193.733, "audioEnd": 222.380},
+    {"segment": 8, "file": "8.mp3", "sceneStart": 233.700, "audioStart": 233.700, "audioEnd": 264.393},
+    {"segment": 9, "file": "9.mp3", "sceneStart": 273.567, "audioStart": 273.567, "audioEnd": 319.715},
+    {"segment": 10, "file": "10.mp3", "sceneStart": 333.700, "audioStart": 333.700, "audioEnd": 344.474}
+  ]
+}

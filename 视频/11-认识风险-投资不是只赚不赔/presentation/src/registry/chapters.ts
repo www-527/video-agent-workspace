@@ -1,0 +1,1 @@
+import{RiskRadar}from"../chapters/11-risk-radar/RiskRadar";import{narrations}from"../chapters/11-risk-radar/narrations";import type{ChapterDef}from"./types";export const CHAPTERS:ChapterDef[]=[{id:"11-risk-radar",title:"认识风险：投资不是只赚不赔",narrations,Component:RiskRadar}];

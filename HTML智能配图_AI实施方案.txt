@@ -1,0 +1,307 @@
+HTML 模式「智能配图」AI 实施方案
+================================
+
+一、目标与范围
+--------------
+
+目标：把现有“生成后点击图片搜索”的独立流程，改为 HTML 视频生成前的一个可选策略。用户确认首镜定调后，只需选择是否启用智能配图，再点击一次“一键生成其余镜头”。
+
+目标交互：
+
+  [智能配图（推荐） Switch] [一键生成其余镜头]
+
+当 Switch 开启时，服务端自动完成全片图片规划、Pexels 搜索、筛选、下载、HTML 注入、自动重试与降级；用户不输入检索词、不选择候选、不逐镜确认。
+
+范围：仅 project.type === 'html'；首镜样片（sampleOnly）不执行智能配图；图片轮播模式保持不变。
+
+非目标：
+- 不在本期接入新的图库/视觉识别服务。
+- 不为用户增加候选图选择面板、关键词编辑器或逐镜配置。
+- 不把 Pexels 的泛化人物照片当作具名人物、新闻现场或品牌/产品事实图。
+
+
+二、当前实现与改造原则
+------------------------
+
+现有能力：
+- src/lib/ai/real-image-planner.ts：已能规划应使用真实图片的镜头。
+- src/lib/pexels/*：已有搜索、评分、缓存、下载能力。
+- src/app/api/frames/html/image-search/route.ts：已有独立的搜索、下载、再生成 HTML 流程。
+- src/app/api/frames/html/route.ts：主 HTML 生成 SSE 流程，当前负责 TTS、HTML、保存与重试。
+
+改造原则：
+1. 复用 planner/Pexels/download/html 校验，不复制业务逻辑。
+2. 智能配图必须进入 /api/frames/html 主流程；不可在前端先调用独立 image-search 接口后再调生成。
+3. 图片失败不是分镜失败：找不到合格图片时，继续生成原生 HTML。
+4. 只有 HTML 已成功引用本地图片后，才认为图片“已应用”。
+5. 生成时只使用一个 SSE、一个进度条和一个中断入口。
+
+
+三、用户界面实施
+----------------
+
+修改文件：src/components/studio/preview-toolbar.tsx
+
+1. 新增 state：
+   const [smartImages, setSmartImages] = useState(true);
+
+2. 显示条件：
+   - project.type === 'html'
+   - project.outline 存在
+   - 内容计划已确认
+   - 首镜 visual anchor 已确认
+   - 当前不在 generating/searching 状态
+
+3. 放置位置：紧挨“一键生成其余镜头”左侧。建议文案：
+   标签：智能配图
+   title：自动为适合的分镜匹配真实素材；没有合适素材时自动使用动画设计。
+
+4. 点击“一键生成其余镜头”时改为：
+   await start(pending, { smartImages });
+
+5. 移除以下常驻 UI 和逻辑：
+   - 顶部“图片搜索”按钮。
+   - useImageSearch 的引入与 handleImageSearch。
+   - 图片搜索专用进度条。
+   - 常驻“重搜本镜”按钮。
+   - 独立的“中断图片搜索”分支；中断只调用主生成 abort。
+
+6. 后续低频兜底（可在第二期实现）：选中一个已使用图片的分镜时显示“换一张”。该动作无需输入参数，只传 frameId 和 excludePhotoId。
+
+注意：smartImages 为本次点击的临时生成选项，不应写入项目数据库，也不必跨页面持久化。
+
+
+四、前端请求与进度契约
+------------------------
+
+修改文件：src/hooks/use-frame-generation.ts
+
+1. 扩展 start 的 options 类型：
+
+   {
+     sampleOnly?: boolean;
+     forceVisual?: boolean;
+     forceAudio?: boolean;
+     promptOverride?: string;
+     smartImages?: boolean;
+   }
+
+2. POST /api/frames/html 请求 body 中传入：
+   smartImages: options?.smartImages && !options?.sampleOnly
+
+3. 保持原有 SSE 事件格式；图片阶段复用 GenerationPhase，不新增第二套进度状态。
+   需要在 src/lib/generation-progress.ts 中扩展 HTML 的 phase：
+   - image_plan：全片素材规划
+   - image_search：搜索/筛选/下载
+   其余仍用 tts、html、save、done。
+
+4. 进度条文案：
+   - image_plan：正在规划智能配图
+   - image_search：正在匹配真实素材
+   不能显示技术性失败作为整片失败；单镜图片跳过只作为 SSE message/summary 记录。
+
+5. use-frame-generation 已能识别 AbortError；保持该行为，用户中断时状态必须显示“已中断”，不得 toast 为“生成失败”。
+
+
+五、主 API 改造
+----------------
+
+修改文件：src/app/api/frames/html/route.ts
+
+1. Schema 增加：
+   smartImages: z.boolean().optional()
+
+2. 解构 smartImages。启用条件必须为：
+
+   const shouldUseSmartImages = Boolean(
+     smartImages
+     && !sampleOnly
+     && project.type === 'html'
+     && env.PEXELS_API_KEY
+   );
+
+3. 若 smartImages=true 但未配置 PEXELS_API_KEY：
+   - 不返回 409 或失败。
+   - 发送一条普通 SSE message：未配置素材服务，已自动使用原生动画。
+   - shouldUseSmartImages 视为 false。
+
+4. 在创建 worker 前，且在 stream.start 内，进行一次全片/本次目标镜头的图片准备：
+
+   if (shouldUseSmartImages) {
+     emit image_plan 进度；
+     调用 prepareSmartImages(...);
+     将结果写入 newSources；
+   }
+
+5. processFrame 中获取 existing 后：
+   - 如果该镜已有 htmlCode 且没有 forceVisual/forceAudio，保持现有 skip 行为；不要为已完整镜头重复找图。
+   - 调用 generateFrameHtmlWithRetry 时，把 existing.realImage / existing.realImages 传给 generateFrameHtml。
+   - HTML 成功后，和 htmlCode、audioPath 一起 persistSource。
+
+6. 不能先写入 realImage，再生成 HTML。图片准备阶段可以只修改内存 newSources；只有某镜 HTML 成功后，persistSource 一次性写入 htmlCode + realImage(s) + 音频字段。
+
+7. 图片准备阶段不应阻塞 TTS。第一期可先串行执行“素材准备 → 原有并发分镜生成”，以降低改动风险；确认稳定后再优化为限并发下载与 TTS 并行。
+
+
+六、提取可复用素材服务
+------------------------
+
+新建文件：src/lib/pexels/smart-images.ts
+
+从 image-search/route.ts 中抽出无 HTTP/SSE 依赖的函数。建议 API：
+
+   export interface SmartImagePreparationResult {
+     sources: FrameSource[];
+     planned: number;
+     downloaded: number;
+     skipped: Array<{ frameId: string; reason: string }>;
+     failed: Array<{ frameId: string; reason: string }>;
+   }
+
+   export async function prepareSmartImages(args: {
+     projectId: string;
+     outline: Outline;
+     targetFrameIds: string[];
+     sources: FrameSource[];
+     abortSignal: AbortSignal;
+     onProgress?: (event: {
+       stage: 'planning' | 'searching' | 'filtering' | 'downloading';
+       frameId?: string;
+       current?: number;
+       total?: number;
+       message?: string;
+     }) => void;
+   }): Promise<SmartImagePreparationResult>
+
+实现规则：
+
+1. 调用 planRealImages 时，只将本次 targetFrameIds 对应的 frames 传入；但 planner 应接收全片已用图片信息用于去重。
+2. 只处理 plan.useRealImage=true 且当前 source 没有 realImage/realImages 的镜头。
+3. 每个计划依次搜索 query，失败或无有效候选时最多使用两个 fallbackQuery。
+4. 对每个 query：searchPexels → scorePexelsCandidates → 尝试分数最高的最多 4 张下载。
+5. 下载成功后仅更新返回 sources 的内存副本，设置 realImage 和 realImages；不要调用 prisma。
+6. 任何单镜搜索、筛选、下载失败：记录 skipped/failed 后继续下一镜；除 abort、429（停止后续搜索）和程序级异常外，不向上抛错。
+7. Pexels 429：停止剩余图片请求，将未处理目标全部记为 skipped，原因“素材服务暂不可用，已自动使用动画设计”。
+8. 使用 usedPhotoIds 对全片已有 realImage(s) 加新选中图片去重；摄影师/颜色比较应基于全片已使用集合，而非仅上一张（第一期至少保留现有逻辑）。
+9. 如果下载成功但后续 HTML 失败，本次不写数据库；文件可保留，后续清理任务负责移除孤儿文件。
+
+完成抽取后：
+- src/app/api/frames/html/image-search/route.ts 改为调用 prepareSmartImages，或删除该独立路由及其 abort 路由。
+- 第一阶段建议删除独立 UI，但保留路由一版以兼容旧客户端；路由内部不再有重复业务代码。
+
+
+七、规划器安全规则
+------------------
+
+修改文件：src/lib/ai/real-image-planner.ts
+
+1. 禁止具名实体的 Pexels 肖像搜索。
+   当镜头包含明确人名（尤其罗马字人名）或具体品牌/作品/新闻事件时，默认 useRealImage=false，reason 写明“具名实体不使用无法验证身份的图库素材”。
+
+2. 保留适用真实素材的类别：通用职业、生活状态、办公/城市/自然场景、通用设备、非特定空间。
+
+3. 对以下内容强制 native：标题、总结、引用、图表、数据、流程、层级、因果、抽象概念。
+
+4. 密度约束不变：20%-40%，最多连续两镜。maxSelected 应允许小项目为 0：
+   - 1-2 镜：默认可为 0。
+   - 3-4 镜：最多 1。
+   - >=5 镜：floor(frames.length * 0.4)，最少 1。
+   这样“每次至少配一张”的现有策略不会在不适合的短视频中强行配图。
+
+
+八、类型与持久化
+----------------
+
+第一期不引入复杂状态机数据库字段；继续使用 FrameSource.realImage/realImages。
+
+修改文件：src/types/index.ts（仅在需要时）
+
+可选地在 FrameSource 加入轻量字段，供结果摘要和以后续跑使用：
+
+   imageStatus?: 'not-requested' | 'planned' | 'applied' | 'skipped';
+   imageReason?: string;
+
+写入规则：
+- 成功生成并使用图片：imageStatus='applied'。
+- 规划后主动降级：imageStatus='skipped'，imageReason 保存简短原因。
+- 不要把 downloaded 但 HTML 未成功的状态持久化为已应用。
+
+如果第一期不加字段，最终 summary 也必须通过 SSE 返回，不得影响现有 FrameSource 兼容性。
+
+
+九、HTML 生成与校验
+--------------------
+
+修改文件：src/app/api/frames/html/route.ts
+
+给 generateFrameHtmlWithRetry 的参数追加：
+   realImage: existing?.realImage,
+   realImages: existing?.realImages,
+
+现有 src/lib/ai/html.ts 已具备：
+- 将本地 /api/data/pexels/ 路径注入生成提示词。
+- 校验图片必须在 visual-zone，必须带 alt，不能使用外链。
+
+因此不需要改动 HTML 安全规则。若 HTML 校验在三次尝试后仍失败：
+- 该镜走现有 frame_error。
+- 不持久化本次新图片引用。
+- TTS 若已成功仍保持现有保存逻辑。
+
+
+十、SSE 最终摘要
+---------------
+
+扩展 done 事件（兼容现有字段）：
+
+   {
+     ...原字段,
+     smartImages: {
+       enabled: boolean,
+       planned: number,
+       downloaded: number,
+       applied: number,
+       skipped: number,
+       skippedFrames: [{ frameId, reason }]
+     }
+   }
+
+前端完成提示：
+- applied > 0：已完成智能配图：X 个分镜使用真实素材，其余采用动画设计。
+- enabled=true 且 applied=0：未找到足够匹配的真实素材，已自动使用动画设计。
+- 不因 skipped 显示错误 toast。
+
+
+十一、测试与验收
+----------------
+
+单元测试：
+1. smartImages=false 时不调用 planner、searchPexels 或 downloadPexelsPhoto。
+2. sampleOnly=true 时即使 smartImages=true 也不调用图片准备。
+3. 未配置 PEXELS_API_KEY 时主生成成功、无 Pexels 请求。
+4. 搜索无结果/低分候选时镜头返回 skipped，HTML 仍生成。
+5. 下载第一候选失败时自动尝试下一候选。
+6. Pexels 429 时已完成镜头保留，剩余镜头降级，不使整片失败。
+7. 生成的 HTML 必须引用下载的本地路径；不允许外部图片 URL。
+8. HTML 生成失败时不能把本次 realImage 持久化为已应用。
+9. 同一 photoId 不得在项目内重复应用。
+10. 具名人物镜头不发起“姓名 portrait”检索。
+
+集成验收：
+1. HTML 项目确认首镜后，工具栏默认显示“智能配图”开关和“一键生成其余镜头”。
+2. 开启开关并点击一次生成，即完成图片规划、下载和 HTML 生成；用户无额外操作。
+3. 关闭开关后，生成链路与当前行为完全一致。
+4. 生成过程只有一条进度条和一个“中断生成”按钮。
+5. 中断后不显示失败 toast；再次生成只处理缺失镜头。
+6. 原“图片搜索”主按钮不再显示。
+
+
+十二、建议提交顺序
+------------------
+
+提交 1：前端开关 + start options + API schema（smartImages 仅透传，默认关闭行为不变）。
+提交 2：新建 smart-images 服务，从独立 image-search 路由抽取复用逻辑，并补单测。
+提交 3：把 smart-images 接入 /api/frames/html，传 realImage 给 generateFrameHtml，统一 SSE 进度。
+提交 4：移除独立图片搜索 UI，增加生成完成摘要和安全降级。
+提交 5：具名实体保护、全片去重改进、孤儿素材清理、低频“换一张”。
+
+每个提交都运行：npm test（若已配置）与 npx tsc --noEmit；最后执行一次真实 HTML 项目的开启/关闭智能配图回归测试。

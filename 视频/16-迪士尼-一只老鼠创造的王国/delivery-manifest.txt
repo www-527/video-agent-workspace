@@ -1,0 +1,37 @@
+第 16 章交付清单｜迪士尼：一只老鼠创造的王国
+
+[内容]
+article.md
+script.md
+outline.md
+storyboard.md
+
+[GPT Image 2]
+assets/prompts/ch16-story-kingdom.md
+assets/images/ch16-story-kingdom.png
+
+[可编辑网页视频]
+presentation/package.json
+presentation/src/
+presentation/public/assets/
+presentation/scripts/qa-capture.cjs
+presentation/scripts/qa-auto-flow.cjs
+presentation/scripts/record-video.cjs
+presentation/video.config.json
+
+[最终视频]
+video/第16章-迪士尼-一只老鼠创造的王国-无配音.mp4
+
+[质检]
+qa-report.md
+qa/content-self-check.md
+qa/web-contact-sheet.png
+qa/video-contact-sheet.png
+qa/timeline-classification.json
+qa/motion-check.json
+qa/video-frames/
+presentation/qa/layout-diagnostics.json
+presentation/qa/auto-flow.json
+presentation/qa/recording-metadata.json
+presentation/qa/recording-final-frame.png
+

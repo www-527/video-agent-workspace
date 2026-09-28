@@ -1,0 +1,1 @@
+import{GameSoul}from"../chapters/18-game-soul/GameSoul";import{narrations}from"../chapters/18-game-soul/narrations";import type{ChapterDef}from"./types";export const CHAPTERS:ChapterDef[]=[{id:"18-game-soul",title:"任天堂：百年游戏老店",narrations,Component:GameSoul}];

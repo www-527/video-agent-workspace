@@ -1,0 +1,35 @@
+version: 1
+
+rules:
+  - id: DEP-DOMAIN-001
+    description: Creative domain rules must not import UI, application orchestration, external providers, or persistence adapters.
+    source: domain
+    forbidden_targets:
+      - frontend
+      - application
+      - infrastructure
+      - persistence
+    severity: block
+
+  - id: DEP-FRONTEND-001
+    description: UI code must access application capabilities through public APIs and must not reach into infrastructure or persistence internals.
+    source: frontend
+    forbidden_targets:
+      - infrastructure.internal
+      - persistence.internal
+    severity: block
+
+  - id: DEP-PUBLIC-001
+    description: Cross-module imports must use a target module's public paths.
+    cross_module: true
+    allowed_target_visibility:
+      - public
+    severity: block
+
+  - id: DEP-CYCLE-001
+    description: The module dependency graph must remain acyclic.
+    severity: block
+
+  - id: DEP-EXCEPTION-001
+    description: A necessary exception must be recorded with an owner and expiry date.
+    severity: requires_justification

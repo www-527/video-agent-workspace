@@ -1,0 +1,9 @@
+{
+  "port": 4216,
+  "slug": "chapter16-story-kingdom",
+  "steps": 10,
+  "storageKey": "chapter16-story-kingdom-cursor-v5",
+  "sceneSelector": ".sk-scene",
+  "finalSelector": ".sk-final",
+  "finalHoldSeconds": 22
+}

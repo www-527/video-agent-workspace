@@ -1,0 +1,1 @@
+import{MoatGuard}from"../chapters/08-moat-guard/MoatGuard";import{narrations}from"../chapters/08-moat-guard/narrations";import type{ChapterDef}from"./types";export const CHAPTERS:ChapterDef[]=[{id:"08-moat-guard",title:"护城河：好公司的城堡",narrations,Component:MoatGuard}];

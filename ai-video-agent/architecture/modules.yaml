@@ -1,0 +1,134 @@
+version: 1
+
+# Module map for AI Video Agent. Cross-module access should use a module's
+# documented entry points instead of reaching into implementation details.
+modules:
+  shared:
+    paths:
+      - src/types/**
+      - src/lib/utils.ts
+    owns:
+      - shared_types
+      - shared_utilities
+    public_paths:
+      - src/types/**
+      - src/lib/utils.ts
+    may_depend_on: []
+    forbidden_dependencies: []
+
+  frontend:
+    paths:
+      - src/app/**
+      - src/components/**
+      - src/hooks/**
+      - src/stores/**
+      - src/styles/**
+    owns:
+      - user_interface
+      - client_state
+    public_paths:
+      - src/components/**
+      - src/hooks/**
+      - src/types/**
+    may_depend_on:
+      - shared.public
+      - application.public
+    forbidden_dependencies:
+      - infrastructure.internal
+      - persistence.internal
+
+  application:
+    paths:
+      - src/lib/agents/**
+      - src/lib/evaluations/**
+      - src/lib/projects/**
+      - src/lib/prompts/**
+      - src/lib/quality/**
+    owns:
+      - video_creation_workflows
+      - agent_orchestration
+      - content_quality_policy
+    public_paths:
+      - src/lib/agents/**
+      - src/lib/evaluations/**
+      - src/lib/projects/**
+      - src/lib/prompts/**
+      - src/lib/quality/**
+    may_depend_on:
+      - shared.public
+      - domain.public
+      - infrastructure.public
+      - persistence.public
+    forbidden_dependencies:
+      - frontend
+
+  domain:
+    paths:
+      - src/lib/storyboard.ts
+      - src/lib/outline.ts
+      - src/lib/intent.ts
+      - src/lib/frame-*.ts
+      - src/lib/visual-*.ts
+    owns:
+      - storyboard_contracts
+      - creative_domain_rules
+    public_paths:
+      - src/lib/storyboard.ts
+      - src/lib/outline.ts
+      - src/lib/intent.ts
+      - src/lib/frame-*.ts
+      - src/lib/visual-*.ts
+    may_depend_on:
+      - shared.public
+    forbidden_dependencies:
+      - frontend
+      - application
+      - infrastructure
+      - persistence
+
+  infrastructure:
+    paths:
+      - src/lib/ai/**
+      - src/lib/pexels/**
+      - src/lib/research/**
+      - src/lib/render/**
+      - src/lib/tts/**
+      - src/lib/api/**
+      - src/lib/render-*.ts
+      - src/lib/tts-*.ts
+    owns:
+      - external_ai_services
+      - media_rendering
+      - external_content_providers
+    public_paths:
+      - src/lib/ai/**
+      - src/lib/pexels/**
+      - src/lib/research/**
+      - src/lib/render/**
+      - src/lib/tts/**
+    may_depend_on:
+      - shared.public
+      - domain.public
+    forbidden_dependencies:
+      - frontend
+      - application
+      - persistence
+
+  persistence:
+    paths:
+      - prisma/**
+      - src/lib/db/**
+      - src/lib/storage/**
+    owns:
+      - database_schema
+      - persisted_project_data
+    public_paths:
+      - src/lib/db/**
+      - src/lib/storage/**
+    may_depend_on:
+      - shared.public
+      - domain.public
+    forbidden_dependencies:
+      - frontend
+      - application
+      - infrastructure

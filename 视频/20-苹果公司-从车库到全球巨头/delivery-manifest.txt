@@ -1,0 +1,49 @@
+第 20 章交付清单｜苹果公司：从车库到全球巨头
+
+[内容]
+article.md
+script.md
+outline.md
+storyboard.md
+
+[GPT Image 2]
+assets/prompts/ch20-garage-ecosystem.md
+assets/images/ch20-garage-ecosystem.png
+
+[可编辑网页视频]
+presentation/package.json
+presentation/src/
+presentation/public/assets/
+presentation/scripts/qa-capture.cjs
+presentation/scripts/qa-auto-flow.cjs
+presentation/scripts/record-video.cjs
+presentation/video.config.json
+
+[最终视频]
+video/第20章-苹果公司-从车库到全球巨头-无配音.mp4
+
+[质检]
+qa-report.md
+qa/content-self-check.md
+qa/web-contact-sheet.png
+qa/video-contact-sheet.png
+qa/timeline-classification.json
+qa/motion-check.json
+qa/video-frames/
+presentation/qa/layout-diagnostics.json
+presentation/qa/auto-flow.json
+presentation/qa/recording-metadata.json
+presentation/qa/recording-final-frame.png
+2026-08-31 五幕视觉重新设计交付
+- 最终视频：video\第20章-苹果公司-从车库到全球巨头（五幕重新设计终版-女-纯澈女生配音）.mp4
+- 原始纪念备份（只读）：video\原版纪念备份\第20章-苹果公司-从车库到全球巨头（原版纪念保留-女-纯澈女生配音）.mp4
+- 页面项目：presentation\src\chapters\20-focused-ecosystem\FocusedEcosystem.tsx 与 FocusedEcosystem.css
+- GPT Image 2 新素材：assets\images\ch20-redesign-ecosystem-atrium.png；assets\images\ch20-redesign-homework-relay.png
+- GPT Image 2 提示词：assets\prompts\ch20-redesign-ecosystem-atrium.md；assets\prompts\ch20-redesign-homework-relay.md
+- 质检：qa\ch20-five-scene-redesign-qa.md；qa\five-scene-redesign-final-frames\
+2026-08-31 封面重设计增量交付
+- 最终视频：video\第20章-苹果公司-从车库到全球巨头（封面重设计终版-女-纯澈女生配音）.mp4
+- 封面 GPT Image 2 素材：assets\images\ch20-cover-convergence-redesign.png
+- 封面 GPT Image 2 提示词：assets\prompts\ch20-cover-convergence-redesign.md
+- 成片抽帧：qa\cover-redesign-final-frame-005s.png
+

@@ -1,0 +1,36 @@
+{
+  "chapter": 2,
+  "title": "钱能生钱吗？",
+  "theme": "钱币夜班工坊",
+  "voiceover": false,
+  "video": {
+    "path": "video/02-钱能生钱吗（无配音）.mp4",
+    "codec": "h264",
+    "profile": "High",
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "pixelFormat": "yuv420p",
+    "durationSeconds": 362.266667,
+    "frameCount": 10868,
+    "audioStreamCount": 0,
+    "sizeBytes": 27681311,
+    "sha256": "C9D3CC7FE4B26F8A4C2859E01569131678C03C3E157E1195F96BFA9CB4E577D3"
+  },
+  "project": "presentation",
+  "sourceArticle": "article.md",
+  "script": "script.md",
+  "outline": "outline.md",
+  "qaReport": "qa-report.md",
+  "qaContactSheet": "qa/final-contact-sheet.png",
+  "generatedKeyArt": "assets/generated/money-night-workshop-keyart.png",
+  "imagePrompt": "assets/prompts/night-workshop-keyart.md",
+  "checks": {
+    "build": "pass",
+    "browserConsoleErrors": 0,
+    "safeAreaOverflowCount": 0,
+    "fullDecode": "pass",
+    "fixedEnding": "pass",
+    "realMotion": "pass"
+  }
+}

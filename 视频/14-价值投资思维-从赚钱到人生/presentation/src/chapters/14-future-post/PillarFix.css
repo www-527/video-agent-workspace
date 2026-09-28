@@ -1,0 +1,174 @@
+/* Four value scenes use a numbered monument card instead of literal pillars. */
+.fp-value-monument {
+  position: relative;
+  width: 680px;
+  height: 720px;
+  display: grid;
+  place-items: center;
+  isolation: isolate;
+}
+
+.fp-value-monument::before {
+  content: "";
+  position: absolute;
+  inset: 92px 24px 42px 88px;
+  border-radius: 44px;
+  background:
+    radial-gradient(circle at 76% 20%, color-mix(in srgb, var(--accent) 13%, transparent), transparent 37%),
+    linear-gradient(145deg, color-mix(in srgb, var(--surface-2) 82%, transparent), transparent);
+  transform: rotate(4deg);
+  z-index: -2;
+}
+
+.fp-value-monument::after {
+  content: "";
+  position: absolute;
+  width: 470px;
+  height: 470px;
+  border: 2px solid color-mix(in srgb, var(--accent) 13%, transparent);
+  border-radius: 50%;
+  right: -18px;
+  top: 114px;
+  z-index: -1;
+  animation: fp-value-halo 8s linear infinite;
+}
+
+.fp-value-card {
+  position: relative;
+  width: 450px;
+  height: 620px;
+  padding: 46px 52px 42px 66px;
+  overflow: hidden;
+  border: 2px solid color-mix(in srgb, var(--rule) 76%, transparent);
+  border-radius: 30px 30px 74px 30px;
+  background: color-mix(in srgb, var(--surface-2) 94%, transparent);
+  box-shadow: 0 34px 76px color-mix(in srgb, var(--text) 14%, transparent);
+  animation: fp-value-enter 1s var(--ease-overshoot) both;
+}
+
+.fp-value-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 16px;
+  background: linear-gradient(180deg, var(--accent), color-mix(in srgb, var(--accent) 28%, transparent));
+}
+
+.fp-value-card::after {
+  content: "";
+  position: absolute;
+  width: 230px;
+  height: 230px;
+  right: -88px;
+  bottom: -96px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--accent) 9%, transparent);
+}
+
+.fp-value-meta {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  border-bottom: 2px solid color-mix(in srgb, var(--rule) 64%, transparent);
+  padding-bottom: 20px;
+}
+
+.fp-value-meta span {
+  padding-top: 10px;
+  font: 800 17px/1 var(--font-mono);
+  letter-spacing: .19em;
+  color: var(--accent);
+}
+
+.fp-value-meta b {
+  font: 900 74px/.8 var(--font-display-en);
+  letter-spacing: -.08em;
+  color: color-mix(in srgb, var(--accent) 58%, var(--surface-2));
+}
+
+.fp-value-card > strong {
+  position: relative;
+  z-index: 2;
+  display: block;
+  width: max-content;
+  margin: 48px auto 0;
+  writing-mode: vertical-rl;
+  font: 900 104px/.92 var(--font-display-cn);
+  letter-spacing: .16em;
+  color: var(--text);
+  text-shadow: 10px 10px 0 color-mix(in srgb, var(--accent) 7%, transparent);
+}
+
+.fp-value-card > em {
+  position: relative;
+  z-index: 2;
+  display: block;
+  width: max-content;
+  margin: 24px auto 0;
+  padding: 11px 22px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--surface);
+  font: 800 22px/1 var(--font-display-cn);
+  font-style: normal;
+  letter-spacing: .08em;
+}
+
+.fp-value-rail {
+  position: absolute;
+  z-index: 4;
+  left: 70px;
+  top: 132px;
+  bottom: 122px;
+  width: 3px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 28%, transparent);
+}
+
+.fp-value-rail i {
+  position: absolute;
+  left: 50%;
+  width: 18px;
+  height: 18px;
+  border: 4px solid var(--surface);
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 25%, transparent);
+  transform: translateX(-50%);
+}
+
+.fp-value-rail i:nth-child(1) { top: 8%; }
+.fp-value-rail i:nth-child(2) { top: 48%; }
+.fp-value-rail i:nth-child(3) { bottom: 8%; }
+
+.fp-value-foundation {
+  position: absolute;
+  z-index: 2;
+  left: 74px;
+  right: 52px;
+  bottom: 34px;
+  display: grid;
+  justify-items: end;
+  gap: 7px;
+}
+
+.fp-value-foundation i {
+  display: block;
+  height: 5px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 36%, transparent);
+}
+
+.fp-value-foundation i:nth-child(1) { width: 38%; }
+.fp-value-foundation i:nth-child(2) { width: 62%; }
+.fp-value-foundation i:nth-child(3) { width: 86%; }
+
+@keyframes fp-value-enter {
+  from { opacity: 0; transform: translateY(54px) rotate(-2deg); }
+}
+
+@keyframes fp-value-halo {
+  to { transform: rotate(360deg); }
+}

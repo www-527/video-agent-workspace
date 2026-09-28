@@ -1,0 +1,1 @@
+import{FocusedEcosystem}from"../chapters/20-focused-ecosystem/FocusedEcosystem";import{narrations}from"../chapters/20-focused-ecosystem/narrations";import type{ChapterDef}from"./types";export const CHAPTERS:ChapterDef[]=[{id:"20-focused-ecosystem",title:"苹果公司：从车库到全球巨头",narrations,Component:FocusedEcosystem}];

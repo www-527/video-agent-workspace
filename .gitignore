@@ -1,0 +1,53 @@
+# Dependencies, build output and local state
+node_modules/
+.git/
+.venv/
+venv/
+__pycache__/
+.next/
+.next-dev/
+dist/
+out/
+build/
+coverage/
+.cache/
+.tmp/
+tmp/
+.worktrees/
+.runtime-logs/
+local tts/
+qa/
+*.log
+*.pid
+*.tsbuildinfo
+
+# Credentials and runtime databases (keep configuration examples)
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.pem
+*.key
+*.sqlite*
+*.db
+*.db-*
+
+# Large local media, model weights and bundled binaries
+*.mp4
+*.webm
+*.mov
+*.avi
+*.mkv
+*.mp3
+*.wav
+*.m4a
+*.aac
+*.flac
+*.pth
+*.pt
+*.safetensors
+*.onnx
+*.dll
+*.exe
+*.zip
+*.7z

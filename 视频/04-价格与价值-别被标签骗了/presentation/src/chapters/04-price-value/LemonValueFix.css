@@ -1,0 +1,165 @@
+/* Visual repair pass: remove decorative kickers and replace ambiguous symbols. */
+.lv-scene header { margin-bottom: 42px; }
+.lv-scene header small,
+.lv-game-head small { display: none; }
+.lv-scene header h1,
+.lv-game-head h1 { font-size: 72px; margin-top: 0; }
+
+.lv-label-machine { grid-template-columns: 420px 130px 650px; }
+.lv-tear {
+  height: 370px;
+  position: relative;
+  display: grid;
+  place-items: center;
+  font-size: initial;
+  animation: none;
+}
+.lv-tear::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 22px;
+  bottom: 22px;
+  border-left: 4px dashed var(--coral);
+}
+.lv-tear span {
+  z-index: 2;
+  padding: 12px 9px;
+  background: var(--surface);
+  border: 2px solid var(--coral);
+  color: var(--coral);
+  font-weight: 800;
+  writing-mode: vertical-rl;
+  letter-spacing: .12em;
+  animation: lv-tear-pulse 1.5s infinite alternate;
+}
+
+.lv-weather {
+  margin-top: 38px;
+  padding: 14px 18px;
+  background: var(--cream);
+  border: 2px solid var(--navy);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: initial;
+}
+.lv-weather b { padding: 10px 18px; background: var(--teal-soft); color: var(--teal); font-size: 20px; }
+.lv-weather b:nth-of-type(2) { background: var(--plum-soft); color: var(--plum); }
+.lv-weather b:nth-of-type(3) { background: var(--coral-soft); color: var(--coral); }
+.lv-weather i { font-style: normal; color: var(--text-mute); font-size: 17px; }
+
+.lv-value-person { left: 500px; top: 105px; }
+.lv-price-dog { right: 120px; top: 34px; }
+.lv-value-person strong,
+.lv-price-dog strong {
+  margin-top: 8px;
+  padding: 7px 12px;
+  background: var(--cream);
+  border: 2px solid var(--navy);
+  font-size: 19px;
+}
+.lv-person-figure { width: 92px; height: 104px; position: relative; }
+.lv-person-figure i {
+  position: absolute;
+  left: 30px;
+  top: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--teal);
+  border: 4px solid var(--cream);
+}
+.lv-person-figure span {
+  position: absolute;
+  left: 18px;
+  top: 34px;
+  width: 58px;
+  height: 64px;
+  border-radius: 24px 24px 10px 10px;
+  background: var(--teal);
+}
+.lv-person-figure::before,
+.lv-person-figure::after {
+  content: "";
+  position: absolute;
+  top: 46px;
+  width: 40px;
+  height: 10px;
+  border-radius: 8px;
+  background: var(--teal);
+}
+.lv-person-figure::before { left: 0; transform: rotate(-25deg); }
+.lv-person-figure::after { right: 0; transform: rotate(25deg); }
+.lv-dog-figure { width: 126px; height: 90px; position: relative; }
+.lv-dog-figure i {
+  position: absolute;
+  left: 16px;
+  top: 34px;
+  width: 76px;
+  height: 42px;
+  border-radius: 42px 34px 26px 32px;
+  background: var(--coral);
+}
+.lv-dog-figure span {
+  position: absolute;
+  right: 9px;
+  top: 18px;
+  width: 43px;
+  height: 45px;
+  border-radius: 48% 52% 42% 58%;
+  background: var(--coral);
+}
+.lv-dog-figure span::after {
+  content: "";
+  position: absolute;
+  right: 5px;
+  top: 13px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--navy);
+}
+.lv-dog-figure b {
+  position: absolute;
+  left: 2px;
+  top: 27px;
+  width: 38px;
+  height: 9px;
+  border-radius: 9px;
+  background: var(--coral);
+  transform: rotate(-42deg);
+  transform-origin: right;
+}
+.lv-dog-figure::after {
+  content: "";
+  position: absolute;
+  left: 32px;
+  bottom: 5px;
+  width: 58px;
+  height: 22px;
+  border-left: 8px solid var(--coral);
+  border-right: 8px solid var(--coral);
+}
+.lv-vote-weight { font-size: 24px; }
+
+.lv-game-head h1 { font-size: 78px; }
+.lv-game-head p { font-size: 26px; }
+.lv-game-strip { width: 840px; height: 152px; padding: 20px; gap: 12px; }
+.lv-game-strip i {
+  width: 72px;
+  height: 58px;
+  clip-path: polygon(0 0, 82% 0, 100% 50%, 82% 100%, 0 100%, 12% 50%);
+  background: var(--accent);
+  color: var(--navy);
+  display: grid;
+  place-items: center;
+  font: 800 24px var(--font-display-cn);
+  font-style: normal;
+  opacity: 0;
+  animation: lv-game-tag .45s calc(var(--i) * .12s) forwards;
+}
+.lv-game-strip button { height: 78px; font-size: 31px; }
+
+@keyframes lv-tear-pulse { to { transform: translateY(12px); } }
+@keyframes lv-game-tag { from { opacity: 0; transform: translateX(-18px); } to { opacity: 1; transform: none; } }

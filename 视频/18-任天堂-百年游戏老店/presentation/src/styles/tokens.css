@@ -1,0 +1,56 @@
+/* Theme · Kyoto craft × warm game world
+ * Deep ink green and warm washi replace the former electric-blue/neon-yellow
+ * collision. Vermilion appears only as a narrative accent.
+ */
+:root {
+  --shell: #0b1512;
+  --surface: #eee8db;
+  --surface-2: #dcd3c2;
+  --surface-3: #20322b;
+  --text: #f5efe4;
+  --text-2: #d8d0c3;
+  --text-mute: #9a9d91;
+  --text-faint: #6f786f;
+  --ink: #17231f;
+  --ink-2: #35463f;
+  --paper: #f4eee2;
+  --paper-2: #d8cebb;
+  --sage: #728777;
+  --rule: rgba(244, 238, 226, 0.24);
+  --accent: #b84c3b;
+  --accent-soft: rgba(184, 76, 59, 0.16);
+  --accent-glow: rgba(184, 76, 59, 0.38);
+  --brass: #aa8b58;
+
+  --font-display-cn: "Noto Serif SC", "Source Han Serif SC", "Songti SC", serif;
+  --font-display-en: "Cormorant Garamond", "Noto Serif", serif;
+  --font-body: "Noto Sans SC", "Source Han Sans SC", "Microsoft YaHei", sans-serif;
+  --font-mono: "IBM Plex Mono", "JetBrains Mono", monospace;
+  --font-features: "ss01", "tnum";
+
+  --dur-quick: 220ms;
+  --dur-base: 520ms;
+  --dur-slow: 900ms;
+  --dur-cinematic: 1600ms;
+
+  --r-card: 18px;
+  --r-stage: 0;
+  --rule-w: 1px;
+  --rule-style: solid;
+  --hero-num-font: var(--font-display-en);
+  --hero-num-style: normal;
+  --hero-num-weight: 700;
+  --hero-num-track: -0.03em;
+  --stage-pad-x: 96px;
+  --stage-pad-y: 72px;
+  --card-shadow: 0 24px 70px rgba(11, 21, 18, 0.18);
+  --shadow-stage: 0 60px 160px rgba(3, 9, 7, 0.62);
+
+  --surface-pattern:
+    radial-gradient(circle at 20% 20%, rgba(244, 238, 226, 0.035) 0 1px, transparent 1.4px),
+    radial-gradient(circle at 70% 65%, rgba(244, 238, 226, 0.025) 0 1px, transparent 1.4px);
+  --surface-pattern-size: 13px 17px, 19px 23px;
+  --surface-pattern-blend: soft-light;
+  --surface-pattern-opacity: 0.55;
+  --surface-vignette: radial-gradient(circle at 50% 45%, transparent 52%, rgba(3, 9, 7, 0.28) 100%);
+}

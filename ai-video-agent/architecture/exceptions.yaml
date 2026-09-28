@@ -1,0 +1,4 @@
+version: 1
+
+# Every exception must state why it is needed, who owns its removal, and when it expires.
+exceptions: []

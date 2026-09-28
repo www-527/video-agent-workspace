@@ -1,0 +1,1 @@
+import{CompoundLab}from"../chapters/09-compound-lab/CompoundLab";import{narrations}from"../chapters/09-compound-lab/narrations";import type{ChapterDef}from"./types";export const CHAPTERS:ChapterDef[]=[{id:"09-compound-lab",title:"复利：滚雪球的魔法",narrations,Component:CompoundLab}];

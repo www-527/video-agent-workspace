@@ -1,0 +1,1 @@
+import{CoreBrick}from"../chapters/17-core-brick/CoreBrick";import{narrations}from"../chapters/17-core-brick/narrations";import type{ChapterDef}from"./types";export const CHAPTERS:ChapterDef[]=[{id:"17-core-brick",title:"乐高：一块积木的逆袭",narrations,Component:CoreBrick}];

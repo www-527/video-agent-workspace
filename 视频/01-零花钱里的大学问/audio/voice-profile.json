@@ -1,0 +1,9 @@
+{
+  "provider": "IndexTTS2-local",
+  "reference": "audio/reference/琴.mp3",
+  "sourceReference": "C:/Users/Administrator/Documents/video agent/ai-video-agent/local tts/yzylauncher-win-Indextts20-260616/win-unpacked/python/voices/琴.mp3",
+  "status": "ready",
+  "language": "zh-CN",
+  "speed": 0.95,
+  "notes": "使用用户指定的琴.mp3克隆声线；每个场景独立生成，便于后续替换配音。"
+}

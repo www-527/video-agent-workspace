@@ -1,0 +1,33 @@
+const { chromium } = require("playwright");
+const fs = require("node:fs");
+const path = require("node:path");
+const config = require("../video.config.json");
+
+(async () => {
+  const project = path.resolve(__dirname, "..");
+  const output = path.join(project, "qa", "screenshots");
+  fs.mkdirSync(output, { recursive: true });
+  const browser = await chromium.launch({ executablePath: "C:/Program Files/Google/Chrome/Application/chrome.exe", headless: true });
+  const page = await browser.newPage({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 });
+  const consoleErrors = [];
+  page.on("console", m => { if (m.type() === "error") consoleErrors.push(m.text()); });
+  const diagnostics = [];
+  for (let step = 0; step < config.steps; step++) {
+    await page.goto(`http://127.0.0.1:${config.port}/?capture=1`, { waitUntil: "networkidle" });
+    await page.evaluate(({ key, target }) => localStorage.setItem(key, JSON.stringify({ chapter: 0, step: target })), { key: config.storageKey, target: step });
+    await page.reload({ waitUntil: "networkidle" });
+    await page.waitForTimeout(2600);
+    await page.screenshot({ path: path.join(output, `step-${String(step + 1).padStart(2, "0")}.png`) });
+    diagnostics.push(await page.evaluate(({ selector, currentStep }) => {
+      const safe = { left: 96, top: 80, right: 1824, bottom: 1000 };
+      const outside = [...document.querySelectorAll(`${selector} *`)].map(e => {
+        const r = e.getBoundingClientRect(), s = getComputedStyle(e);
+        return { tag: e.tagName, cls: e.className?.toString().slice(0, 100) ?? "", text: e.textContent?.trim().slice(0, 50) ?? "", rect: { x: r.x, y: r.y, width: r.width, height: r.height }, opacity: Number(s.opacity), visibility: s.visibility };
+      }).filter(x => x.tag !== "IMG" && x.rect.width > 1 && x.rect.height > 1 && x.opacity > .05 && x.visibility !== "hidden")
+        .filter(x => x.rect.x < safe.left - 1 || x.rect.y < safe.top - 1 || x.rect.x + x.rect.width > safe.right + 1 || x.rect.y + x.rect.height > safe.bottom + 1);
+      return { step: currentStep, outsideSafe: outside, bodyScroll: { width: document.documentElement.scrollWidth, height: document.documentElement.scrollHeight } };
+    }, { selector: config.sceneSelector, currentStep: step }));
+  }
+  fs.writeFileSync(path.join(project, "qa", "layout-diagnostics.json"), JSON.stringify({ diagnostics, consoleErrors }, null, 2));
+  await browser.close();
+})().catch(e => { console.error(e); process.exit(1); });

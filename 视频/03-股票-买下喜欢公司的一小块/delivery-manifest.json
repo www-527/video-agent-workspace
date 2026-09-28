@@ -1,0 +1,37 @@
+{
+  "chapter": 3,
+  "title": "股票：买下喜欢公司的一小块",
+  "theme": "街角奶茶店股份拼图",
+  "voiceover": false,
+  "video": {
+    "path": "video/03-股票-买下喜欢公司的一小块（无配音）.mp4",
+    "codec": "h264",
+    "profile": "High",
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "pixelFormat": "yuv420p",
+    "durationSeconds": 367.0,
+    "frameCount": 11010,
+    "audioStreamCount": 0,
+    "sizeBytes": 26864096,
+    "sha256": "558DD25575175A5FEDA12AE6FFCCBA10D08DEFFE90FF7C2E5BA1AF841D45AE11"
+  },
+  "project": "presentation",
+  "sourceArticle": "article.md",
+  "script": "script.md",
+  "narrationText": "旁白.txt",
+  "outline": "outline.md",
+  "qaReport": "qa-report.md",
+  "qaContactSheet": "qa/final-contact-sheet.png",
+  "generatedKeyArt": "assets/generated/milk-tea-share-puzzle-keyart.png",
+  "imagePrompt": "assets/prompts/milk-tea-share-puzzle-keyart.md",
+  "checks": {
+    "build": "pass",
+    "browserConsoleErrors": 0,
+    "safeAreaOverflowCount": 0,
+    "fullDecode": "pass",
+    "fixedEnding": "pass",
+    "realMotion": "pass"
+  }
+}

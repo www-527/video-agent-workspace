@@ -1,0 +1,164 @@
+// AI 视频制作智能体 — Prisma schema
+// 数据库：MySQL 8.0+，需要 utf8mb4 字符集
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Project {
+  uuid        String    @id @default(uuid())
+  title       String
+  type        String // "image" | "html"
+  canvasPreset String   @default("landscape-16-9") // fixed at project creation
+  styleId     String? // HTML 模式选中的视觉风格 id
+  contentStyle Json? // 项目级内容风格继承/覆盖设置
+  gptOptimization Json? // project-level GPT-free override
+  workflow     String   @default("gpt-free") // "gpt-free"
+  aiBinding    Json? // Legacy field retained for existing databases; new projects never write or read it.
+  outline     Json? // 视频大纲：{title, totalDuration, globalStyle?, frames: [...]}
+  videoSource Json? // 视频源：{frames: [{id, imagePath?, audioPath?, audioDuration?, htmlCode?}]}
+  projectBrief Json?
+  briefStatus  String   @default("empty")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  messages    Message[]
+  agentRuns   AgentRun[]
+  assets       ProjectAsset[]
+  changeSets   ProjectChangeSet[]
+  checkpoints ProjectCheckpoint[]
+
+  @@index([createdAt])
+  @@map("project")
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  projectId String
+  role      String // "user" | "assistant"
+  content   String   @db.Text
+  metadata  Json? // 大纲卡片/分镜卡片/进度等结构化数据
+  createdAt DateTime @default(now())
+  project   Project  @relation(fields: [projectId], references: [uuid], onDelete: Cascade)
+
+  @@index([projectId, createdAt])
+  @@map("message")
+}
+
+model AgentRun {
+  id          String      @id @default(uuid())
+  projectId   String
+  kind        String
+  inputHash   String       @db.VarChar(64)
+  status      String
+  summary     Json?
+  requestedAt DateTime     @default(now())
+  startedAt   DateTime?
+  finishedAt  DateTime?
+  cancelledAt DateTime?
+  clientRequestId   String?
+  userMessageId     String?
+  contextSnapshot   Json?
+  cancelRequestedAt DateTime?
+  retryOfRunId      String?
+  resumeOfRunId     String?
+  project     Project      @relation(fields: [projectId], references: [uuid], onDelete: Cascade)
+  tasks       AgentTask[]
+
+  @@index([projectId, kind, status])
+  @@index([inputHash])
+  @@unique([projectId, clientRequestId])
+  @@map("agent_run")
+}
+
+model AgentTask {
+  id           String   @id @default(uuid())
+  runId        String
+  taskKey      String
+  role         String
+  frameId      String?
+  status       String
+  dependencies Json?
+  inputHash    String   @db.VarChar(64)
+  artifact     Json?
+  diagnostics  Json?
+  attempt      Int      @default(0)
+  maxAttempts  Int      @default(1)
+  errorCode    String?
+  errorMessage String?  @db.Text
+  createdAt    DateTime @default(now())
+  startedAt    DateTime?
+  finishedAt   DateTime?
+  run          AgentRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@unique([runId, taskKey])
+  @@index([runId, status])
+  @@index([role, inputHash])
+  @@map("agent_task")
+}
+
+model ProjectAsset {
+  id            String   @id @default(uuid())
+  projectId     String
+  kind          String
+  mimeType      String
+  originalName  String
+  storagePath   String
+  contentHash   String   @db.VarChar(64)
+  byteLength    Int
+  status        String
+  inferredUsage String?
+  summary       Json?
+  metadata      Json?
+  errorCode     String?
+  errorMessage  String?  @db.Text
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  project       Project  @relation(fields: [projectId], references: [uuid], onDelete: Cascade)
+
+  @@index([projectId, status])
+  @@unique([projectId, contentHash])
+  @@map("project_asset")
+}
+
+model ProjectChangeSet {
+  id              String    @id @default(uuid())
+  projectId       String
+  runId           String?
+  status          String
+  baseStateHash   String    @db.VarChar(64)
+  resultStateHash String?   @db.VarChar(64)
+  scope           Json
+  operations      Json
+  impact          Json
+  summary         Json
+  checkpointId    String?
+  createdAt       DateTime  @default(now())
+  appliedAt       DateTime?
+  revertedAt      DateTime?
+  project         Project   @relation(fields: [projectId], references: [uuid], onDelete: Cascade)
+
+  @@index([projectId, status])
+  @@map("project_change_set")
+}
+
+model ProjectCheckpoint {
+  id           String    @id @default(uuid())
+  projectId    String
+  reason       String
+  stateHash    String    @db.VarChar(64)
+  snapshotPath String
+  snapshotHash String    @db.VarChar(64)
+  summary      Json?
+  changeSetId  String?
+  createdAt    DateTime  @default(now())
+  restoredAt   DateTime?
+  project      Project   @relation(fields: [projectId], references: [uuid], onDelete: Cascade)
+
+  @@index([projectId, createdAt])
+  @@map("project_checkpoint")
+}

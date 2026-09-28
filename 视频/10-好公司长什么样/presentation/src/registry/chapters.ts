@@ -1,0 +1,1 @@
+import{CompanyDetective}from"../chapters/10-company-detective/CompanyDetective";import{narrations}from"../chapters/10-company-detective/narrations";import type{ChapterDef}from"./types";export const CHAPTERS:ChapterDef[]=[{id:"10-company-detective",title:"好公司长什么样？",narrations,Component:CompanyDetective}];

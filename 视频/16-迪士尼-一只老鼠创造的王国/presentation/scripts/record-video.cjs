@@ -1,0 +1,31 @@
+const { chromium } = require("playwright");
+const fs = require("node:fs");
+const path = require("node:path");
+const config = require("../video.config.json");
+
+(async () => {
+  const project = path.resolve(__dirname, "..");
+  const recordDir = path.join(project, "qa", "recording");
+  const output = path.join(project, "qa", `${config.slug}-screen.webm`);
+  fs.mkdirSync(recordDir, { recursive: true });
+  const browser = await chromium.launch({ executablePath: "C:/Program Files/Google/Chrome/Application/chrome.exe", headless: true });
+  const context = await browser.newContext({ viewport: { width: 1920, height: 1080 }, recordVideo: { dir: recordDir, size: { width: 1920, height: 1080 } } });
+  await context.addInitScript(() => localStorage.clear());
+  const page = await context.newPage();
+  const createdAt = Date.now();
+  await page.goto(`http://127.0.0.1:${config.port}/?auto=1&capture=1`, { waitUntil: "networkidle" });
+  await page.waitForTimeout(1000);
+  const startedAt = Date.now();
+  await page.locator(".auto-gate").click();
+  await page.waitForSelector(config.finalSelector, { timeout: 480000 });
+  const finalSceneAt = Date.now();
+  await page.waitForTimeout(config.finalHoldSeconds * 1000);
+  await page.screenshot({ path: path.join(project, "qa", "recording-final-frame.png") });
+  const video = page.video();
+  await page.close();
+  if (!video) throw new Error("No recording");
+  await video.saveAs(output);
+  await context.close();
+  await browser.close();
+  fs.writeFileSync(path.join(project, "qa", "recording-metadata.json"), JSON.stringify({ createdAt, startedAt, finalSceneAt, contentBeforeFinalSeconds: (finalSceneAt - startedAt) / 1000, finalHoldSeconds: config.finalHoldSeconds, sourceVideo: output }, null, 2));
+})().catch(e => { console.error(e); process.exit(1); });

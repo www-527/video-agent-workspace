@@ -1,0 +1,30 @@
+{
+  "chapter": 4,
+  "title": "价格与价值：别被标签骗了",
+  "theme": "柠檬黄昏估值站",
+  "voiceover": false,
+  "video": {
+    "path": "video/04-价格与价值-别被标签骗了（无配音）.mp4",
+    "codec": "h264",
+    "profile": "High",
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "pixelFormat": "yuv420p",
+    "durationSeconds": 368.0,
+    "frameCount": 11040,
+    "audioStreamCount": 0,
+    "sizeBytes": 23515077,
+    "sha256": "4069EB235356D911372CDBB48AFC40EE33C48E8CB0839934607E49EEB63ABB18"
+  },
+  "project": "presentation",
+  "sourceArticle": "article.md",
+  "script": "script.md",
+  "narrationText": "旁白.txt",
+  "outline": "outline.md",
+  "qaReport": "qa-report.md",
+  "qaContactSheet": "qa/final-contact-sheet.png",
+  "generatedKeyArt": "assets/generated/lemon-value-station-keyart.png",
+  "imagePrompt": "assets/prompts/lemon-value-station-keyart.md",
+  "checks": {"build":"pass","browserConsoleErrors":0,"safeAreaOverflowCount":0,"fullDecode":"pass","fixedEnding":"pass","realMotion":"pass"}
+}

@@ -1,0 +1,39 @@
+/* Visual repair pass: remove decorative English and clarify controls. */
+.mm-scene header { margin-bottom: 42px; }
+.mm-scene header small,
+.mm-game-head small { display: none; }
+.mm-scene header h1,
+.mm-game-head h1 { margin-top: 0; font-size: 72px; }
+
+.mm-switches em { font-family: var(--font-display-cn); letter-spacing: .05em; }
+.mm-main-lever span { font: 800 24px var(--font-display-cn); letter-spacing: .08em; }
+
+.mm-game-head h1 { font-size: 78px; }
+.mm-game-head p { font-size: 25px; }
+.mm-weather-strip {
+  width: 850px;
+  height: 142px;
+  padding: 20px;
+  gap: 12px;
+}
+.mm-weather-strip i {
+  width: 86px;
+  height: 66px;
+  padding: 0 8px;
+  border: 2px solid var(--fog);
+  background: var(--surface-3);
+  color: var(--text);
+  font: 800 19px var(--font-display-cn);
+  transform: rotate(calc((var(--i) - 1.5) * 3deg));
+  animation: mm-state-card .5s calc(var(--i) * .15s) forwards;
+}
+.mm-weather-strip i:nth-child(1) { border-color: var(--coral); color: var(--coral); }
+.mm-weather-strip i:nth-child(2) { border-color: var(--teal); color: var(--teal); }
+.mm-weather-strip i:nth-child(3) { border-color: var(--storm); color: var(--text); }
+.mm-weather-strip i:nth-child(4) { border-color: var(--accent); color: var(--accent); }
+.mm-weather-strip button { height: 78px; font-size: 30px; }
+
+@keyframes mm-state-card {
+  from { opacity: 0; transform: translateY(22px) rotate(calc((var(--i) - 1.5) * 7deg)); }
+  to { opacity: 1; transform: rotate(calc((var(--i) - 1.5) * 3deg)); }
+}

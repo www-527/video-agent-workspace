@@ -1,0 +1,20 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
+import { abort } from '@/lib/ai/abort-registry';
+
+const schema = z.object({
+  projectId: z.string().uuid(),
+  mode: z.enum(['html', 'image']).optional().default('html'),
+});
+
+/**
+ * POST /api/frames/html/abort
+ * 中断 HTML 生成。
+ */
+export async function POST(req: NextRequest) {
+  const body = await req.json();
+  const parsed = schema.safeParse(body);
+  if (!parsed.success) return NextResponse.json({ error: '参数错误' }, { status: 400 });
+  const ok = abort(parsed.data.projectId, parsed.data.mode);
+  return NextResponse.json({ ok });
+}
