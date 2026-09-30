@@ -9,6 +9,16 @@
 3. 新电脑准备 Windows x64、Python 3.12+、Node.js 22 和 MariaDB 12.2（或兼容的 MySQL 服务）。安装 Python 解密库：`python -m pip install cryptography`。
 4. 在备份下载目录执行下列命令，目标目录必须尚不存在。脚本逐卷验证 SHA-256 和 AES-GCM 认证，逐文件验证原始大小和 SHA-256，支持 Windows 长路径：
 
+分卷较多，安装 GitHub CLI 后可一次性下载全部附件，无需逐个点击：
+
+```cmd
+gh auth login
+gh release download full-backup-20260930 --repo www-527/video-agent-workspace --dir D:\video-agent-backup
+cd /d D:\video-agent-backup
+```
+
+下载后解密并恢复：
+
 ```cmd
 python restore-full-backup.py --backup . --key-file "D:\keys\video-agent-backup-20260930.key" --destination "D:\restored-video-agent"
 ```
